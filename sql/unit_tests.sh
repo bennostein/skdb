@@ -311,3 +311,9 @@ if cat test/unit/test_length.sql | $SKDB | grep -q '|0|||test|4|literal|7' ; the
 else
     fail "LENGTH"
 fi
+
+if cat test/unit/alter_table_add_column.sql | $SKDB | grep -q '1|2|3' ; then
+    pass "ADD COLUMN"
+else
+    fail "ADD COLUMN"
+fi
