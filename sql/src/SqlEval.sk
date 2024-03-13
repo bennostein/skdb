@@ -1196,9 +1196,33 @@ class Evaluator{options: Options, user: ?UserFile} {
         },
       );
       None()
-    | P.AlterTableAddCol _
+
+    | P.AlterTableAddCol{pos, name, colDef} ->
+      baseName = SKStore.SID::create(name.lower);
+      getTableDir(context).maybeGet(context, baseName) match {
+      | None() -> error(pos, "Table not found: " + name)
+      | Some(dirDescr) if (dirDescr.view) ->
+        error(pos, "Alter table can't be used on view: " + name)
+      | _ -> void
+      };
+      colDef match {
+      | P.ColumnDefinition{primary => Some _} ->
+        error(pos, "Added columns can't have primary-key constraints")
+      | P.ColumnDefinition{unique => Some _} ->
+        error(pos, "Added columns can't have unique constraints")
+      | P.ColumnDefinition{foreignKey => Some _} ->
+        error(pos, "Added columns can't have foreign-key constraints")
+      | P.ColumnDefinition{generated => Some _}
+      | P.ColumnDefinition{check => Some _}
+      | P.ColumnDefinition{collate => Some _} ->
+        error(pos, "Column constraint not yet supported in add-column")
+      | P.ColumnDefinition{notNull => Some _, default => None _} ->
+        error(pos, "Must provide default value to add not-null column")
+      | _ -> void
+      };
+      invariant_violation("ADD COLUMN not yet implemented")
     | P.AlterTableDropCol _ ->
-      invariant_violation("ALTER TABLE not yet implemented")
+      invariant_violation("DROP COLUMN not yet implemented")
     };
   }
 
