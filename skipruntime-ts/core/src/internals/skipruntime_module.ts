@@ -137,16 +137,16 @@ class ResourceBuilder {
 export interface FromWasm {
   // NonEmptyIterator
   SkipRuntime_NonEmptyIterator__first(
-    it: ptr<Internal.NonEmptyIterator>,
+    values: ptr<Internal.NonEmptyIterator>,
   ): ptr<Internal.CJSON>;
   SkipRuntime_NonEmptyIterator__uniqueValue(
-    it: ptr<Internal.NonEmptyIterator>,
+    values: ptr<Internal.NonEmptyIterator>,
   ): Opt<ptr<Internal.CJSON>>;
   SkipRuntime_NonEmptyIterator__next(
-    it: ptr<Internal.NonEmptyIterator>,
+    values: ptr<Internal.NonEmptyIterator>,
   ): Opt<ptr<Internal.CJSON>>;
   SkipRuntime_NonEmptyIterator__clone(
-    it: ptr<Internal.NonEmptyIterator>,
+    values: ptr<Internal.NonEmptyIterator>,
   ): ptr<Internal.NonEmptyIterator>;
 
   // Mapper
@@ -366,7 +366,7 @@ interface ToWasm {
   SkipRuntime_Mapper__mapElement(
     mapper: Handle<JSONMapper>,
     key: ptr<Internal.CJSON>,
-    it: ptr<Internal.NonEmptyIterator>,
+    values: ptr<Internal.NonEmptyIterator>,
   ): ptr<Internal.CJArray>;
 
   SkipRuntime_deleteMapper(mapper: Handle<JSONMapper>): void;
@@ -574,7 +574,7 @@ class LinksImpl implements Links {
   mapElementOfMapper(
     skmapper: Handle<JSONMapper>,
     key: ptr<Internal.CJSON>,
-    it: ptr<Internal.NonEmptyIterator>,
+    values: ptr<Internal.NonEmptyIterator>,
   ): ptr<Internal.CJArray> {
     const skjson = this.getSkjson();
     const mapper = this.handles.get(skmapper);

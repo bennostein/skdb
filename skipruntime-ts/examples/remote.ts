@@ -14,7 +14,7 @@ import { runService } from "@skipruntime/server";
 class Mult implements Mapper<string, number, string, number> {
   mapElement(
     key: string,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[string, number]> {
     const v = it.toArray();
     return [[key, v.reduce((p, c) => p * c, 1)]];

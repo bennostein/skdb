@@ -22,7 +22,7 @@ import { TimeCollection, ExternalService } from "../src/skipruntime_helpers.js";
 class Map1 implements Mapper<string, number, string, number> {
   mapElement(
     key: string,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[string, number]> {
     return Array([key, it.first() + 2]);
   }
@@ -64,7 +64,7 @@ class Map2 implements Mapper<string, number, string, number> {
 
   mapElement(
     key: string,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[string, number]> {
     const result: [string, number][] = [];
     const values = it.toArray();
@@ -124,7 +124,7 @@ it("testMap2", async () => {
 class Map3 implements Mapper<string, number, string, number> {
   mapElement(
     key: string,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[string, number]> {
     return [[key, it.toArray().reduce((x, y) => x + y, 0)]];
   }
@@ -234,7 +234,7 @@ class SizeMapper implements Mapper<number, number, number, number> {
 
   mapElement(
     key: number,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[number, number]> {
     return [[key, it.first() + this.other.size()]];
   }
@@ -372,7 +372,7 @@ class MapLazy implements Mapper<number, number, number, number> {
 
   mapElement(
     key: number,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[number, number]> {
     return Array([key, this.other.getOne(key) - it.first()]);
   }
@@ -433,7 +433,7 @@ it("testLazy", async () => {
 class TestOddEven implements Mapper<number, number, number, number> {
   mapElement(
     key: number,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[number, number]> {
     return Array([key % 2, it.first()]);
   }
@@ -616,7 +616,7 @@ class JSONExtract
 
   mapElement(
     key: number,
-    it: NonEmptyIterator<{ value: JSONObject; pattern: string }>,
+    values: NonEmptyIterator<{ value: JSONObject; pattern: string }>,
   ): Iterable<[number, TJSON[]]> {
     const value = it.first();
     const result = this.context.jsonExtract(value.value, value.pattern);
@@ -759,7 +759,7 @@ class ExternalCheck implements Mapper<number, number, number, number[]> {
 
   mapElement(
     key: number,
-    it: NonEmptyIterator<number>,
+    values: NonEmptyIterator<number>,
   ): Iterable<[number, number[]]> {
     const result = this.external.maybeGetOne(key);
     const value = it.toArray();
