@@ -96,6 +96,24 @@ export abstract class ManyToOneMapper<
 }
 
 /**
+ * A specialized form of `Mapper` which filters out key/value pairs from the
+ * input collection according to some predicate function, producing a subset
+ * of the input collection's data without any other modification.
+ */
+export abstract class Filter<K extends Json, V extends Json>
+  implements Mapper<K, V, K, V>
+{
+  abstract predicate(value: V, key: K): boolean;
+
+  mapEntry(key: K, values: NonEmptyIterator<V>): Iterable<[K, V]> {
+    return values
+      .toArray()
+      .filter((v) => this.predicate(v, key))
+      .map((v) => [key, v]);
+  }
+}
+
+/**
  * The type of a reactive reducer function, which computes an output
  * value over a collection as values are added/removed
  */
