@@ -96,6 +96,27 @@ export abstract class ManyToOneMapper<
 }
 
 /**
+ * A specialized form of `Mapper` which filters and maps simultaneously,
+ * analogous to `OneToOneMapper` except that it drops whichever values
+ * are mapped to `null` by `mapOption`.
+ */
+export abstract class FilterMapper<
+  K extends Json,
+  V1 extends Json,
+  V2 extends Json,
+> implements Mapper<K, V1, K, V2>
+{
+  abstract mapOption(value: V1, key: K): Nullable<V2>;
+
+  mapEntry(key: K, values: NonEmptyIterator<V1>): Iterable<[K, V2]> {
+    return values.toArray().reduce((acc, v) => {
+      const res = this.mapOption(v);
+      return res ? acc.concat([key, res]) : acc;
+    }, []);
+  }
+}
+
+/**
  * A specialized form of `Mapper` which filters out key/value pairs from the
  * input collection according to some predicate function, producing a subset
  * of the input collection's data without any other modification.
