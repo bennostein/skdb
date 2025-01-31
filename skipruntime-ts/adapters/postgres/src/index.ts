@@ -152,7 +152,7 @@ export class PostgresExternalService implements ExternalService {
    * Subscribe to a resource provided by the external service.
    *
    * @param instance - Instance identifier of the external resource.
-   * @param resource - Name of the table to expose as a resource.
+   * @param resource - Name of the PostgreSQL table to expose as a resource.
    * @param params - Parameters of the external resource; **must** include a field `key` whose value is an object with a string field `col` identifying the table column that should be used as the key in the resulting collection, and a field `type` whose value is one of `INTEGER`, `BIGINT`, `SERIAL`, `BIGSERIAL`, or `TEXT`.
    * @param callbacks - Callbacks to react on error/loading/update.
    * @param callbacks.error - Error callback.
@@ -237,7 +237,7 @@ FOR EACH ROW EXECUTE FUNCTION %I();`,
     setup().then(
       () => this.open_instances.add(instance),
       (e: unknown) => {
-        console.error("Error setting up Postgres notifications");
+        console.error("Error setting up Postgres notifications: ", e);
         throw e;
       },
     );
