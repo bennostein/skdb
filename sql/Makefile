@@ -1,3 +1,5 @@
+DUMMY_CHANGE := "just triggering SKDB CI jobs"
+
 SHELL := /bin/bash
 
 SKARGO_PROFILE?=release
