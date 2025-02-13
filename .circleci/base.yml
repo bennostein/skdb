@@ -115,6 +115,12 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: secret
+      - image: apache/kafka:3.7.2
+        ports: "9092:9092"
+        environment:
+          KAFKA_LISTENERS: INSIDE://0.0.0.0:9092
+          KAFKA_ADVERTISED_LISTENERS: INSIDE://0.0.0.0:9092
+          KAFKA_CREATE_TOPICS: "skip-test-topic:1:1"
     steps:
       - checkout
       - setup
