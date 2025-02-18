@@ -138,7 +138,16 @@ export class PostgresExternalService implements ExternalService {
 
     this.client = new pg.Client(db_config);
     this.client.connect().then(
-      () => this.client.query(format(`LISTEN %I;`, this.clientID)),
+      () => {
+        this.client.query(format(`LISTEN %I;`, this.clientID));
+        const handler = async () => {
+          await this.shutdown();
+          process.exit();
+        };
+        ["SIGINT", "SIGTERM", "SIGUSR1", "SIGUSR2"].forEach((sig) =>
+          process.on(sig, handler),
+        );
+      },
       (e: unknown) => {
         console.error(
           "Error connecting to Postgres at " + JSON.stringify(db_config),
@@ -259,18 +268,18 @@ FOR EACH ROW EXECUTE FUNCTION %I();`,
   }
 
   shutdown(): void {
-    const query =
-      "DROP FUNCTION IF EXISTS " +
-      Array.from(this.open_instances)
-        .map((x) => format("%I", x))
-        .join(", ") +
-      " CASCADE;";
-    this.open_instances.clear();
-
-    const shutdown =
-      this.open_instances.size == 0
-        ? this.client.end()
-        : this.client.query(query).then(() => this.client.end());
+    let shutdown: Promise<void>;
+    if (this.open_instances.size == 0) shutdown = this.client.end();
+    else {
+      const query =
+        "DROP FUNCTION IF EXISTS " +
+        Array.from(this.open_instances)
+          .map((x) => format("%I", x))
+          .join(", ") +
+        " CASCADE;";
+      this.open_instances.clear();
+      shutdown = this.client.query(query).then(() => this.client.end());
+    }
 
     shutdown.catch((e: unknown) => {
       console.error(
