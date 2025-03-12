@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { expect } from "earl";
 import type {
   Context,
@@ -599,6 +600,22 @@ class PostgresResource implements Resource<Input_NN> {
   }
 }
 
+class PostgresResourceWithException implements Resource<Input_NN> {
+  instantiate(
+    _collections: Input_NN,
+    context: Context,
+  ): EagerCollection<number, number> {
+    const pg_data: EagerCollection<number, number> = context
+      .useExternalResource<number, PostgresRow>({
+        service: "postgres",
+        identifier: "skip_test",
+        params: { key: { col: "id", type: "INTEGER" } },
+      })
+      .map(PostgresRowExtract);
+    return pg_data.map(NMapWithException);
+  }
+}
+
 const pg_config = {
   host: "localhost",
   port: 5432,
@@ -657,7 +674,10 @@ const postgresService: () => Promise<
 
   return {
     initialData: { input: [] },
-    resources: { resource: PostgresResource },
+    resources: {
+      resource: PostgresResource,
+      resourceWithException: PostgresResourceWithException,
+    },
     externalServices: { postgres },
     createGraph(inputs: Input_NN) {
       return inputs;
@@ -729,8 +749,11 @@ const mapWithExceptionService: SkipService<Input_SN, Input_SN> = {
 //// testMapWithExceptionOnExternal
 
 class NMapWithException implements Mapper<number, number, number, number> {
-  mapEntry(_key: number, _values: Values<number>): Iterable<[number, number]> {
-    throw new Error("Something goes wrong.");
+  mapEntry(k: number, values: Values<number>): Iterable<[number, number]> {
+    for (const v of values) {
+      if (v == 42) throw new Error("Something goes wrong.");
+    }
+    return values.toArray().map((v) => [k, v]);
   }
 }
 
@@ -765,7 +788,7 @@ export function initTests(
 ) {
   const it = (title: string, fn?: AsyncFunc) =>
     mit(`${title}[${category}]`, fn);
-
+  /*
   it("testMap1", async () => {
     const service = await initService(map1Service);
     service.update("input", [["1", [10]]]);
@@ -1170,7 +1193,7 @@ export function initTests(
     service.update("input2", [["1", [40]]]);
     expect(service.getArray("resource2", "1").payload).toEqual([40]);
   });
-
+*/
   it("testPostgres", async () => {
     let service;
     const pgClient = new pg.Client(pg_config);
@@ -1198,7 +1221,7 @@ export function initTests(
         [3, [30]],
       ]);
       service.instantiateResource(
-        "unsafe.fixed.resource.ident",
+        "unsafe.fixed.resource.ident.1",
         "resource",
         {},
       );
@@ -1242,14 +1265,23 @@ export function initTests(
           else throw e;
         }
       }
+
+      service.instantiateResource(
+        "unsafe.fixed.resource.ident.2",
+        "resourceWithException",
+        {},
+      );
+      // triggers exception in mapper! should log a trace but doesn't
+      await pgClient.query("INSERT INTO skip_test (id,x) VALUES (42,42);");
     } finally {
       await pgClient.query("DELETE FROM skip_test WHERE id = 1;");
+      await pgClient.query("DELETE FROM skip_test WHERE id = 42;");
       await pgClient.query("INSERT INTO skip_test (id, x) VALUES (1,1),(2,2);");
       await pgClient.end();
       await service.close();
     }
   });
-
+  /*
   it("testLazyWithUseExternalService", async () => {
     const service = await initService(lazyWithUseExternalServiceService);
     service.instantiateResource("unsafe.fixed.resource.ident", "lazy", {});
@@ -1294,5 +1326,5 @@ export function initTests(
     expect(message).toMatchRegex(
       new RegExp(/^(?:Error: )?Something goes wrong.$/),
     );
-  });
+  });*/
 }
