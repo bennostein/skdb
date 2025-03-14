@@ -13,7 +13,7 @@ import type {
   JsonObject,
 } from "../skiplang-json/index.js";
 import {
-  sk_freeze,
+  deepFreeze,
   isSkManaged,
   SkManaged,
   checkOrCloneParam,
@@ -54,7 +54,7 @@ import {
   type FromBinding,
 } from "./binding.js";
 
-export { sk_freeze, isSkManaged };
+export { deepFreeze, isSkManaged };
 export * from "./api.js";
 export * from "./errors.js";
 
