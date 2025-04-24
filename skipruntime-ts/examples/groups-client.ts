@@ -16,11 +16,11 @@ console.log("Listening for Bob's active friends in each group...");
 const evSource = new EventSource(`${url}/active_friends/0`);
 evSource.addEventListener("init", (e: MessageEvent<string>) => {
   const initial_data = JSON.parse(e.data);
-  console.log("Initial data: ", initial_data);
+  console.log("[SSE received Initial data] ", initial_data);
 });
 evSource.addEventListener("update", (e: MessageEvent<string>) => {
   const updates = JSON.parse(e.data);
-  console.log("Updated data: ", updates);
+  console.log("[SSE received Updated data] ", updates);
 });
 evSource.onerror = console.error;
 
@@ -50,6 +50,18 @@ await sleep(100);
 console.log("Removing Carol and adding Eve to group 2...");
 await fetchJSON(`${url}/groups/1002`, "PUT", {
   body: { name: "Group 2", members: [0, 3] },
+});
+
+await sleep(100);
+console.log("Setting Bob to have no friends :( ...");
+await fetchJSON(`${url}/users/0`, "PUT", {
+  body: { name: "Bob", active: true, friends: [] },
+});
+
+await sleep(100);
+console.log("Setting Carol as Bob's friend ...");
+await fetchJSON(`${url}/users/0`, "PUT", {
+  body: { name: "Bob", active: true, friends: [2] },
 });
 
 await sleep(100);
